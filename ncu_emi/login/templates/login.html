@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>登入</title>
+</head>
+<body>
+    <h2>登入</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="username">用戶名：</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">密碼：</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <input type="submit" value="登入">
+    </form>
+    {% if messages %}
+        <script>
+            {% for message in messages %}
+                alert("{{ message }}");
+            {% endfor %}
+        </script>
+    {% endif %}
+</body>
+</html>
