@@ -4,9 +4,6 @@
 2. open venv:
         ncu_emi_project\Scripts\activate
 3. install packages:
-        pip install django
-        \n
-        pip install openai
-        \n
-        pip install pymysql
-        \n
+        pip install django  
+        pip install openai  
+        pip install pymysql  
