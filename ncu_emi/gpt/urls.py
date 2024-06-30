@@ -20,5 +20,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.translate_to_chinese, name="translate_to_chinese"),
+    path("", views.gpt_read_pdf, name="gpt_read_pdf"),
 ]
