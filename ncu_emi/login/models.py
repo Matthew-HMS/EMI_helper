@@ -6,6 +6,7 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
 
 
 class AuthGroup(models.Model):
@@ -180,10 +181,11 @@ class User(models.Model):
     user_id = models.AutoField(db_column='User_id', primary_key=True)  # Field name made lowercase.
     user_name = models.CharField(db_column='User_name', max_length=45)  # Field name made lowercase.
     user_account = models.CharField(db_column='User_account', unique=True, max_length=45)  # Field name made lowercase.
-    user_pw = models.CharField(db_column='User_pw', max_length=45)  # Field name made lowercase.
+    user_pw = models.CharField(db_column='User_pw', max_length=128)  # Field name made lowercase.
     is_active = models.IntegerField()
     last_login = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'user'
+    

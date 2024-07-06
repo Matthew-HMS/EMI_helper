@@ -20,5 +20,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.gpt_read_pdf, name="gpt_read_pdf"),
+    # path("", views.gpt_read_pdf, name="gpt_read_pdf"),
 ]

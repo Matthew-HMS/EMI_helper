@@ -6,4 +6,6 @@
 3. install packages:  
 `pip install django`  
 `pip install openai`  
-`pip install pymysql`  
+`pip install pymysql`
+`pip install cryptography`
+`pip install requests`  
