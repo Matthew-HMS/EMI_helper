@@ -25,6 +25,6 @@ urlpatterns = [
     path("index/", views.index_view, name="index_view"),
     path("api/", views.LoginView.as_view()),
     path("register/", views.RegisterView.as_view()),
-    path("logout/", views.LogoutView.as_view()),
+    path("api/logout/", views.LogoutView.as_view()),
     path('api/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
 ]
