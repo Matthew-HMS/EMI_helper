@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db import transaction
+from django.db.models import Max
 from rest_framework.generics import GenericAPIView
 
 from .serializers import classSerializer
@@ -24,6 +25,7 @@ class ClassView(GenericAPIView):
             user = request.user
             try:
                 data['user'] = user.id
+                max_class_id = Class.objects.aggregate(Max('class_id'))['class_id__max'] or 0
                 serializer = self.serializer_class(data=data)
                 serializer.is_valid(raise_exception=True)
                 with transaction.atomic():
