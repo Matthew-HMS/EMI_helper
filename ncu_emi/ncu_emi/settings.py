@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'gpt',
     'index',
     'prompt',
+    'class',
 ]
 
 REST_FRAMEWORK = {
@@ -133,8 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 # LANGUAGE_CODE = 'zh-Hant'
 
-# TIME_ZONE = 'UTC'
-TIME_ZONE = 'Asia/Taipei'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 

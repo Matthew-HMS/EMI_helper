@@ -24,4 +24,5 @@ urlpatterns = [
     path("gpt/", include("gpt.urls")),
     path("index/" , include("index.urls")),
     path("prompt/", include("prompt.urls")),
+    path("class/", include("class.urls")),
 ]
