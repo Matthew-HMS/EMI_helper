@@ -25,7 +25,6 @@ class ClassView(GenericAPIView):
             user = request.user
             try:
                 data['user'] = user.id
-                max_class_id = Class.objects.aggregate(Max('class_id'))['class_id__max'] or 0
                 serializer = self.serializer_class(data=data)
                 serializer.is_valid(raise_exception=True)
                 with transaction.atomic():
@@ -39,9 +38,9 @@ class ClassView(GenericAPIView):
         def delete (self, request, *args, **krgs):
             data = request.data
             try:
-                classes = Class.objects.get(id=data['id'])
+                classes = Class.objects.get(class_id=data['class_id'])
                 classes.delete()
-                data = {'id': data['id']}
+                data = {'class_id': data['class_id']}
             except Exception as e:
                 data = {'error': str(e)}
             return JsonResponse(data)

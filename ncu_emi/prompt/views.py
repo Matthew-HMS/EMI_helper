@@ -34,12 +34,14 @@ class PromptView(GenericAPIView):
             data = {'error': str(e)}
         return JsonResponse(data)
 
-    def delete (self, request, *args, **krgs):
+    def delete(self, request, *args, **kwargs):
         data = request.data
         try:
-            prompt = Prompt.objects.get(id=data['id'])
+            prompt = Prompt.objects.get(prompt_id=data['prompt_id'])
             prompt.delete()
-            data = {'id': data['id']}
+            data = {'prompt_id': data['prompt_id']}
+        except Prompt.DoesNotExist:
+            data = {'error': 'Prompt with the given ID does not exist'}
         except Exception as e:
             data = {'error': str(e)}
         return JsonResponse(data)
