@@ -25,4 +25,6 @@ urlpatterns = [
     path("index/" , include("index.urls")),
     path("prompt/", include("prompt.urls")),
     path("class/", include("class.urls")),
+    path("file/", include("file.urls")),
+    path("ppt/", include("ppt.urls")),
 ]

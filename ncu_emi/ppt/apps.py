@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class PdfConfig(AppConfig):
+class PptConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'pdf'
+    name = 'ppt'

@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'index',
     'prompt',
     'class',
+    'file',
+    'ppt',
 ]
 
 REST_FRAMEWORK = {
