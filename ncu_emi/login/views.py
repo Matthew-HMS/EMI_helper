@@ -11,7 +11,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import check_password
 from rest_framework.permissions import IsAuthenticated
-from datetime import datetime
 
 from .models import User
 from .serializers import UserSerializer, LoginSerializer  
@@ -45,6 +44,8 @@ class RegisterView(CreateAPIView):
         response = super().create(request, *args, **kwargs)
         user = User.objects.get(user_account=request.data['user_account'])
         refresh = RefreshToken.for_user(user)
+        response.data['refresh'] = str(refresh)
+        response.data['access'] = str(refresh.access_token)
         return response
 
 class LoginView(GenericAPIView):
@@ -59,8 +60,6 @@ class LoginView(GenericAPIView):
         user = User.objects.filter(user_account=user_account).first()
         
         if user and check_password(user_pw, user.user_pw):
-            user.last_login = datetime.now()
-            user.save()
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),

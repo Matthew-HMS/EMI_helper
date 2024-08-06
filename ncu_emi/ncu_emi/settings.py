@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'gpt',
     'index',
     'prompt',
-    'class',
 ]
 
 REST_FRAMEWORK = {
@@ -101,7 +100,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'emi_db',
         'USER': 'root',
-        'PASSWORD': '2wsx4rfv',
+        'PASSWORD': '110403524',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -134,7 +133,8 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 # LANGUAGE_CODE = 'zh-Hant'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Taipei'
 
 USE_I18N = True
 

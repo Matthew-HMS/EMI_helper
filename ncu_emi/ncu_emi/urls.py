@@ -17,6 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls.conf import include, path
+# edit by chou
+from rest_framework.routers import DefaultRouter
+from prompt import views as prompt_views
+
+# 創建一個默認的Router
+router = DefaultRouter()
+# 註冊 prompt 應用程式中的視圖集(views)
+router.register(r'prompt', prompt_views.PromptView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,5 +32,6 @@ urlpatterns = [
     path("gpt/", include("gpt.urls")),
     path("index/" , include("index.urls")),
     path("prompt/", include("prompt.urls")),
-    path("class/", include("class.urls")),
+    # edit by chou
+    path('api/', include(router.urls)),  # 包含 API 路由
 ]
