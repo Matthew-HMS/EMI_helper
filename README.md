@@ -1,5 +1,5 @@
 # EMI_helper
-1. you need to create a virtual environment :  
+1. you need to create a virtual environment:  
 `python -m venv ncu_emi_project`
 2. open venv:  
 `ncu_emi_project\Scripts\activate  `
