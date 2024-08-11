@@ -1,48 +1,47 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db import transaction
+from django.db.models import Max
 from rest_framework.generics import GenericAPIView
-from rest_framework import status
 
-from .serializers import fileSerializer
-from .models import File
+from .serializers import classSerializer
+from .models import Class
 # Create your views here.
 
-class FileView(GenericAPIView):
-        queryset = File.objects.all()
-        serializer_class = fileSerializer
+class ClassView(GenericAPIView):
+        
+        queryset = Class.objects.all()
+        serializer_class = classSerializer
         
         def get(self, request, *args, **kwargs):
-            files = self.get_queryset()
-            serializer = self.serializer_class(files, many=True)
+            classes = self.get_queryset()
+            serializer = self.serializer_class(classes, many=True)
             data = serializer.data
+            print(data)
             return JsonResponse(data, safe=False)
 
         
-        def post(self, request, *args, **kwargs):
+        def post(self, request, *args, **krgs):
             data = request.data
-            
+            user = request.user
             try:
+                data['user'] = user.id
                 serializer = self.serializer_class(data=data)
                 serializer.is_valid(raise_exception=True)
-                
                 with transaction.atomic():
                     serializer.save()
-                
                 data = serializer.data
-                return JsonResponse(data, status=status.HTTP_201_CREATED)
-            
             except Exception as e:
                 data = {'error': str(e)}
-                return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data)
   
   
         def delete (self, request, *args, **krgs):
             data = request.data
             try:
-                files = File.objects.get(file_id=data['file_id'])
-                files.delete()
-                data = {'file_id': data['file_id']}
+                classes = Class.objects.get(class_id=data['class_id'])
+                classes.delete()
+                data = {'class_id': data['class_id']}
             except Exception as e:
                 data = {'error': str(e)}
             return JsonResponse(data)
@@ -50,14 +49,12 @@ class FileView(GenericAPIView):
         def patch (self, request, *args, **krgs):
             data = request.data
             try:
-                file = File.objects.get(file_id=data['file_id'])
-                serializer = self.serializer_class(file, data=data, partial=True)
+                classes = Class.objects.get(class_id=data['class_id'])
+                serializer = self.serializer_class(classes, data=data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 with transaction.atomic():
                     serializer.save()
                 data = serializer.data
-            except File.DoesNotExist:
-                data = {'error': 'File with the given ID does not exist'}
             except Exception as e:
                 data = {'error': str(e)}
             return JsonResponse(data)

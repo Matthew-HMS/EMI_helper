@@ -46,3 +46,21 @@ class PptView(GenericAPIView):
             except Exception as e:
                 data = {'error': str(e)}
             return JsonResponse(data)
+        
+        def patch (self, request, *args, **krgs):
+            data = request.data
+            try:
+                ppt = Ppt.objects.get(ppt_id=data['ppt_id'])
+                serializer = self.serializer_class(ppt, data=data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                with transaction.atomic():
+                    serializer.save()
+                data = serializer.data
+            except Ppt.DoesNotExist:
+                data = {'error': 'ppt with the given ID does not exist'}
+            except Exception as e:
+                data = {'error': str(e)}
+            return JsonResponse(data)
+        
+        def get_extra_actions():
+            return []
