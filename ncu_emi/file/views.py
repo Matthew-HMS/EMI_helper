@@ -46,3 +46,21 @@ class FileView(GenericAPIView):
             except Exception as e:
                 data = {'error': str(e)}
             return JsonResponse(data)
+        
+        def patch (self, request, *args, **krgs):
+            data = request.data
+            try:
+                file = File.objects.get(file_id=data['file_id'])
+                serializer = self.serializer_class(file, data=data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                with transaction.atomic():
+                    serializer.save()
+                data = serializer.data
+            except File.DoesNotExist:
+                data = {'error': 'File with the given ID does not exist'}
+            except Exception as e:
+                data = {'error': str(e)}
+            return JsonResponse(data)
+        
+        def get_extra_actions():
+            return []

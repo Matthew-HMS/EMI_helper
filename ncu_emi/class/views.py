@@ -17,6 +17,7 @@ class ClassView(GenericAPIView):
             classes = self.get_queryset()
             serializer = self.serializer_class(classes, many=True)
             data = serializer.data
+            print(data)
             return JsonResponse(data, safe=False)
 
         
@@ -44,3 +45,19 @@ class ClassView(GenericAPIView):
             except Exception as e:
                 data = {'error': str(e)}
             return JsonResponse(data)
+        
+        def patch (self, request, *args, **krgs):
+            data = request.data
+            try:
+                classes = Class.objects.get(class_id=data['class_id'])
+                serializer = self.serializer_class(classes, data=data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                with transaction.atomic():
+                    serializer.save()
+                data = serializer.data
+            except Exception as e:
+                data = {'error': str(e)}
+            return JsonResponse(data)
+        
+        def get_extra_actions():
+            return []
