@@ -3,21 +3,20 @@ from django.http import JsonResponse
 from django.db import transaction
 from django.db.models import Max
 from rest_framework.generics import GenericAPIView
+from rest_framework import status
 
-from .serializers import classSerializer
+from .serializers import ClassSerializer
 from .models import Class
 # Create your views here.
 
-class ClassView(GenericAPIView):
-        
+class ClassView(GenericAPIView):        
         queryset = Class.objects.all()
-        serializer_class = classSerializer
+        serializer_class = ClassSerializer
         
         def get(self, request, *args, **kwargs):
             classes = self.get_queryset()
             serializer = self.serializer_class(classes, many=True)
             data = serializer.data
-            print(data)
             return JsonResponse(data, safe=False)
 
         
@@ -31,9 +30,10 @@ class ClassView(GenericAPIView):
                 with transaction.atomic():
                     serializer.save()
                 data = serializer.data
+                return JsonResponse(data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 data = {'error': str(e)}
-            return JsonResponse(data)
+                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
   
   
         def delete (self, request, *args, **krgs):
@@ -42,9 +42,13 @@ class ClassView(GenericAPIView):
                 classes = Class.objects.get(class_id=data['class_id'])
                 classes.delete()
                 data = {'class_id': data['class_id']}
+                return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
+            except Class.DoesNotExist:
+                data = {'error': 'Class with the given ID does not exist'}
+                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
-            return JsonResponse(data)
+                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         def patch (self, request, *args, **krgs):
             data = request.data
@@ -55,9 +59,13 @@ class ClassView(GenericAPIView):
                 with transaction.atomic():
                     serializer.save()
                 data = serializer.data
+                return JsonResponse(data, status=status.HTTP_200_OK)
+            except Class.DoesNotExist:
+                data = {'error': 'Class with the given ID does not exist'}
+                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
-            return JsonResponse(data)
+                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         def get_extra_actions():
             return []

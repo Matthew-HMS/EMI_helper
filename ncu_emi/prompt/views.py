@@ -31,7 +31,7 @@ class PromptView(GenericAPIView):
             return JsonResponse(data, status=status.HTTP_201_CREATED)
         except Exception as e:
             data = {'error': str(e)}
-            return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request, *args, **kwargs):
         data = request.data
@@ -42,10 +42,10 @@ class PromptView(GenericAPIView):
             return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
         except Prompt.DoesNotExist:
             data = {'error': 'Prompt with the given ID does not exist'}
-            return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             data = {'error': str(e)}
-            return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     
     def patch(self, request, *args, **kwargs):
@@ -58,11 +58,14 @@ class PromptView(GenericAPIView):
             with transaction.atomic():
                 serializer.save()
             data = serializer.data
+            return JsonResponse(data, status=status.HTTP_200_OK)
         except Prompt.DoesNotExist:
             data = {'error': 'Prompt with the given ID does not exist'}
+            return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             data = {'error': str(e)}
-        return JsonResponse(data)
+            return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
     
     def get_extra_actions():
         return []
