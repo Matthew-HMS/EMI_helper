@@ -13,7 +13,12 @@ class FileView(GenericAPIView):
         serializer_class = fileSerializer
         
         def get(self, request, *args, **kwargs):
-            files = self.get_queryset()
+            class_class = request.GET.get('class_class')    
+            if class_class:
+                files = self.get_queryset().filter(class_class=class_class)
+            else:
+                files = self.get_queryset()
+            # files = self.get_queryset()
             serializer = self.serializer_class(files, many=True)
             data = serializer.data
             return JsonResponse(data, safe=False)
