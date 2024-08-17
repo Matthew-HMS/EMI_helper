@@ -57,9 +57,13 @@ class FileView(GenericAPIView):
                 files = File.objects.get(file_id=data['file_id'])
                 files.delete()
                 data = {'file_id': data['file_id']}
+                return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
+            except File.DoesNotExist:
+                data = {'error': 'File with the given ID does not exist'}
+                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
-            return JsonResponse(data)
+                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         def patch (self, request, *args, **krgs):
             data = request.data
@@ -70,11 +74,14 @@ class FileView(GenericAPIView):
                 with transaction.atomic():
                     serializer.save()
                 data = serializer.data
+                return JsonResponse(data, status=status.HTTP_200_OK)
             except File.DoesNotExist:
-                data = {'error': 'File with the given ID does not exist'}
+                data = {'error': 'Class with the given ID does not exist'}
+                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
-            return JsonResponse(data)
+                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
         
         def get_extra_actions():
             return []

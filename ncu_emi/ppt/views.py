@@ -48,9 +48,13 @@ class PptView(GenericAPIView):
                 ppts = Ppt.objects.get(ppt_id=data['ppt_id'])
                 ppts.delete()
                 data = {'ppt_id': data['ppt_id']}
+                return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
+            except Ppt.DoesNotExist:
+                data = {'error': 'Ppt with the given ID does not exist'}
+                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
-            return JsonResponse(data)
+                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         def patch (self, request, *args, **krgs):
             data = request.data
@@ -61,11 +65,13 @@ class PptView(GenericAPIView):
                 with transaction.atomic():
                     serializer.save()
                 data = serializer.data
+                return JsonResponse(data, status=status.HTTP_200_OK)
             except Ppt.DoesNotExist:
-                data = {'error': 'ppt with the given ID does not exist'}
+                data = {'error': 'Class with the given ID does not exist'}
+                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
-            return JsonResponse(data)
+                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         def get_extra_actions():
             return []
