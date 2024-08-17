@@ -88,8 +88,14 @@ class PptView(GenericAPIView):
         def delete (self, request, *args, **krgs):
             data = request.data
             try:
+                api_key = os.environ.get('OPENAI_API_KEY')
+                client = OpenAI(api_key=api_key)
+                
                 ppts = Ppt.objects.get(ppt_id=data['ppt_id'])
                 ppts.delete()
+                
+                client.files.delete(file_id=ppts.ppt_path)
+                
                 data = {'ppt_id': data['ppt_id']}
             except Exception as e:
                 data = {'error': str(e)}

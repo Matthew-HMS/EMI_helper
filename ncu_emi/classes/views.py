@@ -15,6 +15,7 @@ class ClassView(GenericAPIView):
         queryset = Class.objects.all()
         serializer_class = ClassSerializer
         
+        
         def get(self, request, *args, **kwargs):
             classes = self.get_queryset()
             serializer = self.serializer_class(classes, many=True)
@@ -59,8 +60,15 @@ class ClassView(GenericAPIView):
         def delete (self, request, *args, **krgs):
             data = request.data
             try:
+                api_key = os.environ.get('OPENAI_API_KEY')
+                client = OpenAI(api_key=api_key)
+                
                 classes = Class.objects.get(class_id=data['class_id'])
                 classes.delete()
+                
+                client.beta.vector_stores.delete(vector_store_id=classes.vector_store_id)
+                client.beta.assistants.delete(assistant_id=classes.class_path)
+                
                 data = {'class_id': data['class_id']}
                 return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
             except Class.DoesNotExist:
