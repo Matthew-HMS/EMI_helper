@@ -13,8 +13,13 @@ class PptView(GenericAPIView):
         serializer_class = PptSerializer
         
         def get(self, request, *args, **kwargs):
-            ppt = self.get_queryset()
-            serializer = self.serializer_class(ppt, many=True)
+            class_class = request.GET.get('class_class')
+            if class_class:
+                ppts = self.get_queryset().filter(class_class=class_class)
+            else:
+                ppts = self.get_queryset()
+            # ppt = self.get_queryset()
+            serializer = self.serializer_class(ppts, many=True)
             data = serializer.data
             return JsonResponse(data, safe=False)
 
