@@ -4,6 +4,8 @@ from django.db import transaction
 from django.db.models import Max
 from rest_framework.generics import GenericAPIView
 from rest_framework import status
+import os
+from openai import OpenAI
 
 from .serializers import ClassSerializer
 from .models import Class
@@ -25,11 +27,29 @@ class ClassView(GenericAPIView):
             user = request.user
             try:
                 data['user'] = user.id
+                            
+                api_key = os.environ.get('OPENAI_API_KEY')
+                client = OpenAI(api_key=api_key)
+                
+                vector_store = client.beta.vector_stores.create(name=data['class_name'])
+
+                # 創建Assistant
+                assistant = client.beta.assistants.create(
+                    name="Algorithm",
+                    instructions="1. You are now an assistant for the professor in algorithm class, you need to teach the class in English 2. Read pdf's content and give me an English script for class 3. Use the knowledge only in the pdf, else don't answer and say you don't know",
+                    model="gpt-4o",
+                    tools=[{"type": "file_search"}],
+                )
+
+                data['vector_store_id'] = vector_store.id
+                data['class_path'] = assistant.id
+                
                 serializer = self.serializer_class(data=data)
                 serializer.is_valid(raise_exception=True)
                 with transaction.atomic():
+                    print(serializer.validated_data)
                     serializer.save()
-                data = serializer.data
+            
                 return JsonResponse(data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 data = {'error': str(e)}
