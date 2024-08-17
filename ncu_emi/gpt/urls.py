@@ -21,4 +21,5 @@ from . import views
 
 urlpatterns = [
     # path("", views.gpt_read_pdf, name="gpt_read_pdf"),
+    path("", views.GPTResponseAPIView.as_view(), name="gpt_response"),
 ]
