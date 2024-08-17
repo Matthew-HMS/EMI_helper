@@ -93,9 +93,9 @@ class ClassView(GenericAPIView):
                 if new_class_name:
                     api_key = os.environ.get('OPENAI_API_KEY')
                     client = OpenAI(api_key=api_key)
-
-                    vector_store_id = classes.vector_store_id
-                    client.beta.vector_stores.update(vector_store_id=vector_store_id, name=new_class_name)
+                    
+                    client.beta.vector_stores.update(vector_store_id=classes.vector_store_id, name=new_class_name)
+                    client.beta.assistants.update(assistant_id=classes.class_path, name=new_class_name)
 
                 classes = Class.objects.get(class_id=data['class_id'])
                 serializer = self.serializer_class(classes, data=data, partial=True)
