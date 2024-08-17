@@ -17,7 +17,9 @@ class Class(models.Model):
     class_id = models.AutoField(db_column='Class_id', primary_key=True)  # Field name made lowercase.
     class_name = models.CharField(db_column='Class_name', max_length=45, blank=True, null=True)  # Field name made lowercase.
     user_user = models.ForeignKey('User', models.DO_NOTHING, db_column='User_User_id')  # Field name made lowercase.
-
+    class_path = models.CharField(db_column='Class_path', max_length=45, blank=True, null=True)  # Field name made lowercase.
+    vector_store_id = models.CharField(db_column='Vector_store_id', max_length=45,blank=True, null=True)  # Field name made lowercase.
+    
     class Meta:
         managed = False
         db_table = 'class'
