@@ -90,8 +90,13 @@ class FileView(GenericAPIView):
         def delete (self, request, *args, **krgs):
             data = request.data
             try:
+                api_key = os.environ.get('OPENAI_API_KEY')
+                client = OpenAI(api_key=api_key)
+                
                 files = File.objects.get(file_id=data['file_id'])
                 files.delete()
+                
+                client.files.delete(file_id=files.file_path)
                 data = {'file_id': data['file_id']}
                 return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
             except File.DoesNotExist:
