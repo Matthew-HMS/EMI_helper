@@ -31,12 +31,17 @@ class ClassView(GenericAPIView):
                             
                 api_key = os.environ.get('OPENAI_API_KEY')
                 client = OpenAI(api_key=api_key)
-                
+
+                # check if class exists
+                existing_vector_stores = client.beta.vector_stores.list()
+                if any(vs.name == data['class_name'] for vs in existing_vector_stores):
+                    return JsonResponse({'error': 'Class exists'}, status=status.HTTP_409_CONFLICT)
+
                 vector_store = client.beta.vector_stores.create(name=data['class_name'])
 
                 # 創建Assistant
                 assistant = client.beta.assistants.create(
-                    name="Algorithm",
+                    name=data['class_name'],
                     instructions="1. You are now an assistant for the professor in algorithm class, you need to teach the class in English 2. Read pdf's content and give me an English script for class 3. Use the knowledge only in the pdf, else don't answer and say you don't know",
                     model="gpt-4o",
                     tools=[{"type": "file_search"}],
@@ -81,6 +86,17 @@ class ClassView(GenericAPIView):
         def patch (self, request, *args, **krgs):
             data = request.data
             try:
+                classes = Class.objects.get(class_id=data['class_id'])
+        
+                # update vector_store name
+                new_class_name = data.get('class_name')
+                if new_class_name:
+                    api_key = os.environ.get('OPENAI_API_KEY')
+                    client = OpenAI(api_key=api_key)
+
+                    vector_store_id = classes.vector_store_id
+                    client.beta.vector_stores.update(vector_store_id=vector_store_id, name=new_class_name)
+
                 classes = Class.objects.get(class_id=data['class_id'])
                 serializer = self.serializer_class(classes, data=data, partial=True)
                 serializer.is_valid(raise_exception=True)
