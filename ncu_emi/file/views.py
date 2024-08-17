@@ -6,14 +6,23 @@ from rest_framework import status
 
 from .serializers import fileSerializer
 from .models import File
+
+import shutil
+import os
 # Create your views here.
 
 class FileView(GenericAPIView):
         queryset = File.objects.all()
         serializer_class = fileSerializer
+        destination_folder = '../../Flutter_project/flutter_application_ncu_emi/assets/user_data/'  # =cd..,cd..,cd flutter_project,...
         
         def get(self, request, *args, **kwargs):
-            files = self.get_queryset()
+            class_class = request.GET.get('class_class')    
+            if class_class:
+                files = self.get_queryset().filter(class_class=class_class)
+            else:
+                files = self.get_queryset()
+            # files = self.get_queryset()
             serializer = self.serializer_class(files, many=True)
             data = serializer.data
             return JsonResponse(data, safe=False)
@@ -23,6 +32,11 @@ class FileView(GenericAPIView):
             data = request.data
             
             try:
+                # copy file to destination folder
+                file_path=data['file_path']
+                destination_path = os.path.abspath(self.destination_folder)
+                shutil.copy(file_path, destination_path)
+
                 serializer = self.serializer_class(data=data)
                 serializer.is_valid(raise_exception=True)
                 
