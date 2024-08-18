@@ -34,7 +34,8 @@ class FileView(GenericAPIView):
         def post(self, request, *args, **kwargs):
             data = request.data
             classes_id = data['class_class']
-            
+            file_path=data['file_path']
+
             try:
                 classes = get_object_or_404(Class, class_id=classes_id)
 
@@ -49,16 +50,12 @@ class FileView(GenericAPIView):
                     "OpenAI-Beta": "assistants=v2"
                 }
                 
-             
-                directory = r"C:\中央大學第六學期\專題\EMI\EMI_helper\ncu_emi\gpt\改良QuickSort作業說明_更正.pdf"
-                print(f"File path: {directory}")  
-
-                if not os.path.exists(directory):
+                print(f"File path: {file_path}")  
+                if not os.path.exists(file_path):
                     return JsonResponse({'error': 'File not found at the specified path.'}, status=status.HTTP_400_BAD_REQUEST)
                 
-                
                 files = client.files.create(
-                    file=open(directory, "rb"),
+                    file=open(file_path, "rb"),
                     purpose="assistants",
                 )
                 
@@ -74,6 +71,7 @@ class FileView(GenericAPIView):
                     tool_resources={"file_search": {"vector_store_ids": [vector_store]}},
                 )
                 
+                # post to the database
                 serializer = self.serializer_class(data=data)
                 serializer.is_valid(raise_exception=True)
                 
@@ -106,23 +104,24 @@ class FileView(GenericAPIView):
                 data = {'error': str(e)}
                 return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+        # should be usless
         def patch (self, request, *args, **krgs):
-            data = request.data
-            try:
-                file = File.objects.get(file_id=data['file_id'])
-                serializer = self.serializer_class(file, data=data, partial=True)
-                serializer.is_valid(raise_exception=True)
-                with transaction.atomic():
-                    serializer.save()
-                data = serializer.data
-                return JsonResponse(data, status=status.HTTP_200_OK)
-            except File.DoesNotExist:
-                data = {'error': 'Class with the given ID does not exist'}
-                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                data = {'error': str(e)}
-                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            # data = request.data
+            # try:
+            #     file = File.objects.get(file_id=data['file_id'])
+            #     serializer = self.serializer_class(file, data=data, partial=True)
+            #     serializer.is_valid(raise_exception=True)
+            #     with transaction.atomic():
+            #         serializer.save()
+            #     data = serializer.data
+            #     return JsonResponse(data, status=status.HTTP_200_OK)
+            # except File.DoesNotExist:
+            #     data = {'error': 'Class with the given ID does not exist'}
+            #     return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
+            # except Exception as e:
+            #     data = {'error': str(e)}
+            #     return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({'error': 'PATCH method is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         
         def get_extra_actions():
             return []

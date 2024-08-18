@@ -4,6 +4,7 @@ from django.db import transaction
 from rest_framework.generics import GenericAPIView
 from rest_framework import status
 import os
+import shutil
 from openai import OpenAI
 import requests
 from django.shortcuts import get_object_or_404
@@ -16,6 +17,7 @@ from .models import Class
 class PptView(GenericAPIView):
         queryset = Ppt.objects.all()
         serializer_class = PptSerializer
+        destination_folder = '../../Flutter_project/flutter_application_ncu_emi/assets/user_data/'  # =cd..,cd..,cd flutter_project,...
         
         def get(self, request, *args, **kwargs):
             class_class = request.GET.get('class_class')
@@ -32,8 +34,16 @@ class PptView(GenericAPIView):
         def post(self, request, *args, **kwargs):
             data = request.data
             classes_id = data['class_class']
+            ppt_path=data['ppt_path']
+            print(f"Ppt path: {ppt_path}")
             
             try:
+                # copy the file to the destination folder
+                ppt_path=data['ppt_path']
+                destination_path = os.path.abspath(self.destination_folder)
+                shutil.copy(ppt_path, destination_path)
+
+                # upload the file to the openai
                 classes = get_object_or_404(Class, class_id=classes_id)
 
                 vector_store = classes.vector_store_id
@@ -45,18 +55,14 @@ class PptView(GenericAPIView):
                 headers = {
                     "Authorization": f"Bearer {api_key}",
                     "OpenAI-Beta": "assistants=v2"
-                }
+                }              
                 
-             
-                directory = r"C:\中央大學第六學期\專題\EMI\EMI_helper\ncu_emi\gpt\Eclipse安裝與輸出說明.pdf"
-                print(f"File path: {directory}")  
-
-                if not os.path.exists(directory):
+                print(f"File path: {ppt_path}")  
+                if not os.path.exists(ppt_path):
                     return JsonResponse({'error': 'File not found at the specified path.'}, status=status.HTTP_400_BAD_REQUEST)
                 
-                
                 files = client.files.create(
-                    file=open(directory, "rb"),
+                    file=open(ppt_path, "rb"),
                     purpose="assistants",
                 )
                 
@@ -72,6 +78,7 @@ class PptView(GenericAPIView):
                     tool_resources={"file_search": {"vector_store_ids": [vector_store]}},
                 )
                 
+                # post to the database
                 serializer = self.serializer_class(data=data)
                 serializer.is_valid(raise_exception=True)
                 
@@ -94,27 +101,34 @@ class PptView(GenericAPIView):
                 ppts = Ppt.objects.get(ppt_id=data['ppt_id'])
                 ppts.delete()
                 
-                client.files.delete(file_id=ppts.ppt_path)
-                
+                client.files.delete(file_id=ppts.ppt_path)                
                 data = {'ppt_id': data['ppt_id']}
-            except Exception as e:
-                data = {'error': str(e)}
-            return JsonResponse(data)
-        
-        def patch (self, request, *args, **krgs):
-            data = request.data
-            try:
-                ppt = Ppt.objects.get(ppt_id=data['ppt_id'])
-                serializer = self.serializer_class(ppt, data=data, partial=True)
-                serializer.is_valid(raise_exception=True)
-                with transaction.atomic():
-                    serializer.save()
-                data = serializer.data
+                return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
             except Ppt.DoesNotExist:
-                data = {'error': 'ppt with the given ID does not exist'}
+                data = {'error': 'Ppt with the given ID does not exist'}
+                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
-            return JsonResponse(data)
+                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+        # should be discussed
+        def patch (self, request, *args, **krgs):
+            # data = request.data
+            # try:
+            #     ppt = Ppt.objects.get(ppt_id=data['ppt_id'])
+            #     serializer = self.serializer_class(ppt, data=data, partial=True)
+            #     serializer.is_valid(raise_exception=True)
+            #     with transaction.atomic():
+            #         serializer.save()
+            #     data = serializer.data
+            #     return JsonResponse(data, status=status.HTTP_200_OK)
+            # except Ppt.DoesNotExist:
+            #     data = {'error': 'ppt with the given ID does not exist'}
+            #     return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
+            # except Exception as e:
+            #     data = {'error': str(e)}
+            #     return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({'error': 'PATCH method is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
         def get_extra_actions():
             return []
