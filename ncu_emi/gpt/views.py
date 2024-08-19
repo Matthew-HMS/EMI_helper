@@ -1,6 +1,6 @@
 import os
 import requests
-from rest_framework.views import GenericAPIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from openai import OpenAI
@@ -62,7 +62,7 @@ class GPTResponseAPIView(GenericAPIView):
             serializer.is_valid(raise_exception=True)
             with transaction.atomic():
                 serializer.save()
-                
+
             return Response({
                 "message": messages[0].content[0].text.value
             }, status=status.HTTP_200_OK)
