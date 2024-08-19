@@ -9,6 +9,7 @@ from django.db import transaction
 
 from .models import Class
 from .models import Pptword
+from .models import Ppt
 from .serializers import PptWordSerializer
 
 
@@ -26,18 +27,19 @@ class GPTResponseAPIView(GenericAPIView):
         data = request.data
 
         try:  
-            if 'class_class' not in data:
-                return Response({'error': 'class_class is required.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+            if 'ppt_ppt' not in data:
+                return Response({'error': 'ppt_ppt is required.'}, status=status.HTTP_400_BAD_REQUEST)            
                  
-            classes_id = data['class_class']
-            
-            classes = get_object_or_404(Class, class_id=classes_id)
-            
+            ppt_id = data['ppt_ppt']
+
+            ppt_instance = get_object_or_404(Ppt, ppt_id=ppt_id)
+            class_instance = ppt_instance.class_class
+                       
             api_key = os.environ.get('OPENAI_API_KEY')
             client = OpenAI(api_key=api_key)
 
-            assistant_id = classes.class_path
+            assistant_id = class_instance.class_path
+            print(assistant_id)
 
             # 生成GPT回應
             thread = client.beta.threads.create(
@@ -66,6 +68,9 @@ class GPTResponseAPIView(GenericAPIView):
             return Response({
                 "message": messages[0].content[0].text.value
             }, status=status.HTTP_200_OK)
+            # return Response({
+            #     "message": "message received"
+            # }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
