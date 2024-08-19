@@ -34,14 +34,14 @@ class PptView(GenericAPIView):
         def post(self, request, *args, **kwargs):
             data = request.data
             classes_id = data['class_class']
-            ppt_path=data['ppt_path']
-            print(f"Ppt path: {ppt_path}")
             
             try:
                 # copy the file to the destination folder
-                ppt_path=data['ppt_path']
+                ppt_local_path=data['ppt_local_path']
+                print(f"Ppt local path: {ppt_local_path}")
                 destination_path = os.path.abspath(self.destination_folder)
-                shutil.copy(ppt_path, destination_path)
+                shutil.copy(ppt_local_path, destination_path)
+                data['ppt_local_path'] = destination_path
 
                 # upload the file to the openai
                 classes = get_object_or_404(Class, class_id=classes_id)
@@ -57,12 +57,11 @@ class PptView(GenericAPIView):
                     "OpenAI-Beta": "assistants=v2"
                 }              
                 
-                print(f"File path: {ppt_path}")  
-                if not os.path.exists(ppt_path):
+                if not os.path.exists(ppt_local_path):
                     return JsonResponse({'error': 'File not found at the specified path.'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 files = client.files.create(
-                    file=open(ppt_path, "rb"),
+                    file=open(ppt_local_path, "rb"),
                     purpose="assistants",
                 )
                 
