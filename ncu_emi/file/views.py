@@ -32,6 +32,7 @@ class FileView(GenericAPIView):
 
         
         def post(self, request, *args, **kwargs):
+            print("file post")
             data = request.data
             classes_id = data['class_class']
             file_path=data['file_path']

@@ -17,7 +17,7 @@ from .models import Class
 class PptView(GenericAPIView):
         queryset = Ppt.objects.all()
         serializer_class = PptSerializer
-        destination_folder = '../../Flutter_project/flutter_application_ncu_emi/assets/user_data/'  # =cd..,cd..,cd flutter_project,...
+        destination_folder = '../../Flutter_project/flutter_application_ncu_emi/assets/'  # =cd..,cd..,cd flutter_project,...
         
         def get(self, request, *args, **kwargs):
             class_class = request.GET.get('class_class')
@@ -33,18 +33,22 @@ class PptView(GenericAPIView):
         
         def post(self, request, *args, **kwargs):
             data = request.data
-            classes_id = data['class_class']
+            print(f"Data: {data}")
+            class_id = data['class_class']
+            class_name = data['class_name']
             
             try:
                 # copy the file to the destination folder
                 ppt_local_path=data['ppt_local_path']
                 print(f"Ppt local path: {ppt_local_path}")
-                destination_path = os.path.abspath(self.destination_folder)
+                destination_path = os.path.join(self.destination_folder, class_name)
                 shutil.copy(ppt_local_path, destination_path)
-                data['ppt_local_path'] = destination_path
+
+                data['ppt_local_path'] = os.path.join(destination_path, data['ppt_name'])
+                print(f"copy ppt to destination path: {destination_path}")
 
                 # upload the file to the openai
-                classes = get_object_or_404(Class, class_id=classes_id)
+                classes = get_object_or_404(Class, class_id=class_id)
 
                 vector_store = classes.vector_store_id
                 assistant_id = classes.class_path
@@ -93,7 +97,14 @@ class PptView(GenericAPIView):
   
         def delete (self, request, *args, **krgs):
             data = request.data
+            ppt_id = data['ppt_id']
+
             try:
+                ppt_instance = get_object_or_404(Ppt, ppt_id=ppt_id)
+                ppt_local_path = ppt_instance.ppt_local_path
+                os.remove(ppt_local_path)
+
+                # delete the file from the openai
                 api_key = os.environ.get('OPENAI_API_KEY')
                 client = OpenAI(api_key=api_key)
                 
@@ -103,6 +114,10 @@ class PptView(GenericAPIView):
                 client.files.delete(file_id=ppts.ppt_path)                
                 data = {'ppt_id': data['ppt_id']}
                 return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
+            except FileNotFoundError:
+                print(f'File not found at the specified path: {ppt_local_path}')
+                data = {'error': 'File not found at the specified path.'}
+                return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
             except Ppt.DoesNotExist:
                 data = {'error': 'Ppt with the given ID does not exist'}
                 return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)

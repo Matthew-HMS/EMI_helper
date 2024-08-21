@@ -25,6 +25,7 @@ class GPTResponseAPIView(GenericAPIView):
 
     def post(self, request):
         data = request.data
+        print("gpt post")
 
         try:  
             if 'ppt_ppt' not in data:
