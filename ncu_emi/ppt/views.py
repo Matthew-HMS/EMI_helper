@@ -8,6 +8,7 @@ import shutil
 from openai import OpenAI
 import requests
 from django.shortcuts import get_object_or_404
+from pypdf import PdfReader, PdfWriter
 
 from .serializers import PptSerializer
 from .models import Ppt
@@ -38,18 +39,34 @@ class PptView(GenericAPIView):
             class_name = data['class_name']
             
             try:
-                # copy the file to the destination folder
-                ppt_local_path=data['ppt_local_path']
+                # 複製文件到目標資料夾
+                ppt_local_path = data['ppt_local_path']
+                # ppt_local_path = r"C:\中央大學第六學期\專題\EMI\EMI_helper\ncu_emi\gpt\Eclipse安裝與輸出說明.pdf"
                 print(f"Ppt local path: {ppt_local_path}")
                 destination_path = os.path.join(self.destination_folder, class_name)
+                os.makedirs(destination_path, exist_ok=True)  # 確保目標資料夾存在
                 shutil.copy(ppt_local_path, destination_path)
 
+                # 更新檔案路徑
                 data['ppt_local_path'] = os.path.join(destination_path, data['ppt_name'])
-                print(f"copy ppt to destination path: {destination_path}")
+                print(f"Copied ppt to destination path: {destination_path}")
 
-                # upload the file to the openai
+                # 切割 PDF 文件
+                pdf_path = data['ppt_local_path']
+                pdf_reader = PdfReader(pdf_path)
+                pdf_files = []
+
+                for i in range(len(pdf_reader.pages)):
+                    pdf_writer = PdfWriter()
+                    pdf_writer.add_page(pdf_reader.pages[i])
+                    
+                    split_pdf_path = os.path.join(destination_path, f"{data['ppt_name'].split('.')[0]}_page_{i + 1}.pdf")
+                    with open(split_pdf_path, "wb") as split_pdf_file:
+                        pdf_writer.write(split_pdf_file)
+                        pdf_files.append(split_pdf_path)
+
+                # 上傳每個分割的 PDF 文件到 OpenAI
                 classes = get_object_or_404(Class, class_id=class_id)
-
                 vector_store = classes.vector_store_id
                 assistant_id = classes.class_path
                 
@@ -59,29 +76,33 @@ class PptView(GenericAPIView):
                 headers = {
                     "Authorization": f"Bearer {api_key}",
                     "OpenAI-Beta": "assistants=v2"
-                }              
+                }
+
+                uploaded_file_ids = []
                 
-                if not os.path.exists(ppt_local_path):
-                    return JsonResponse({'error': 'File not found at the specified path.'}, status=status.HTTP_400_BAD_REQUEST)
+                for pdf_file_path in pdf_files:
+                    if not os.path.exists(pdf_file_path):
+                        return JsonResponse({'error': f'File not found: {pdf_file_path}'}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                    with open(pdf_file_path, "rb") as pdf_file:
+                        files = client.files.create(
+                            file=pdf_file,
+                            purpose="assistants",
+                        )
+                        uploaded_file_ids.append(files.id)
                 
-                files = client.files.create(
-                    file=open(ppt_local_path, "rb"),
-                    purpose="assistants",
-                )
-                
-                data['ppt_path'] = files.id
-                
+                # 更新向量儲存和助理資料
                 batch_add = client.beta.vector_stores.file_batches.create(
                     vector_store_id=vector_store,
-                    file_ids=[files.id]
+                    file_ids=uploaded_file_ids
                 )
                 
                 assistant = client.beta.assistants.update(
                     assistant_id=assistant_id,
                     tool_resources={"file_search": {"vector_store_ids": [vector_store]}},
                 )
-                
-                # post to the database
+
+                # 保存資料到資料庫
                 serializer = self.serializer_class(data=data)
                 serializer.is_valid(raise_exception=True)
                 
