@@ -39,7 +39,7 @@ class User(models.Model):
 class Ppt_page(models.Model):
     ppt_page_id = models.AutoField(db_column='ppt_page_id', primary_key=True)  # Field name made lowercase.
     uploaded_id = models.CharField(db_column='uploaded_id', max_length=100, blank=True, null=True)  # Field name made lowercase.
-    ppt_ppt = models.ForeignKey(Ppt, models.DO_NOTHING, db_column='ppt_ppt_id')  # Field name made lowercase.
+    ppt_ppt = models.ForeignKey(Ppt, models.CASCADE, db_column='ppt_ppt_id')  # Field name made lowercase.
 
     class Meta:
         managed = False

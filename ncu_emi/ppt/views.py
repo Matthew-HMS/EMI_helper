@@ -128,35 +128,47 @@ class PptView(GenericAPIView):
                 return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
   
   
-        def delete (self, request, *args, **krgs):
+        def delete(self, request, *args, **kwargs):
             data = request.data
-            ppt_id = data['ppt_id']
+            ppt_id = data.get('ppt_id')
 
             try:
+                # 获取 PPT 实例
                 ppt_instance = get_object_or_404(Ppt, ppt_id=ppt_id)
                 ppt_local_path = ppt_instance.ppt_local_path
-                os.remove(ppt_local_path)
+                
+                # 删除本地文件
+                if os.path.exists(ppt_local_path):
+                    os.remove(ppt_local_path)
+                else:
+                    print(f'File not found at the specified path: {ppt_local_path}')
+                    return JsonResponse({'error': 'File not found at the specified path.'}, status=status.HTTP_400_BAD_REQUEST)
 
-                # delete the file from the openai
+                # 初始化 OpenAI 客户端
                 api_key = os.environ.get('OPENAI_API_KEY')
+                if not api_key:
+                    return JsonResponse({'error': 'OpenAI API key not found in environment variables.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
                 client = OpenAI(api_key=api_key)
                 
-                ppts = Ppt.objects.get(ppt_id=data['ppt_id'])
-                ppts.delete()
-                
-                client.files.delete(file_id=ppts.ppt_path)                
-                data = {'ppt_id': data['ppt_id']}
-                return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
-            except FileNotFoundError:
-                print(f'File not found at the specified path: {ppt_local_path}')
-                data = {'error': 'File not found at the specified path.'}
-                return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+                # 删除 OpenAI 文件
+                try:
+                    client.files.delete(file_id=ppt_instance.ppt_path)
+                except Exception as openai_error:
+                    print(f"Failed to delete file from OpenAI: {openai_error}")
+                    return JsonResponse({'error': f'Failed to delete file from OpenAI: {openai_error}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                # 删除 PPT 实例（将级联删除关联的 Ppt_page 对象）
+                ppt_instance.delete()
+
+                return JsonResponse({'message': f'Ppt with ID {ppt_id} and all associated pages deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
             except Ppt.DoesNotExist:
-                data = {'error': 'Ppt with the given ID does not exist'}
-                return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
+                return JsonResponse({'error': 'Ppt with the given ID does not exist'}, status=status.HTTP_404_NOT_FOUND)
+            except FileNotFoundError:
+                return JsonResponse({'error': 'File not found at the specified path.'}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
-                data = {'error': str(e)}
-                return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         # should be discussed
         def patch (self, request, *args, **krgs):
