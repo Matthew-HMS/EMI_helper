@@ -40,34 +40,40 @@ class PptView(GenericAPIView):
             print(f"Data: {data}")
             class_id = data['class_class']
             class_name = data['class_name']
-            ppt_id = data['ppt_id']
+            # ppt_id = data['ppt_id']
             
             try:
+                try:
                 # 複製文件到目標資料夾
-                ppt_local_path = data['ppt_local_path']
-                # ppt_local_path = r"C:\中央大學第六學期\專題\EMI\EMI_helper\ncu_emi\gpt\Eclipse安裝與輸出說明.pdf"
-                print(f"Ppt local path: {ppt_local_path}")
-                destination_path = os.path.join(self.destination_folder, class_name)
-                os.makedirs(destination_path, exist_ok=True)  # 確保目標資料夾存在
-                shutil.copy(ppt_local_path, destination_path)
+                    ppt_local_path = data['ppt_local_path']
+                    # ppt_local_path = r"C:\中央大學第六學期\專題\EMI\EMI_helper\ncu_emi\gpt\Eclipse安裝與輸出說明.pdf"
+                    print(f"Ppt local path: {ppt_local_path}")
+                    destination_path = os.path.join(self.destination_folder, class_name)
+                    os.makedirs(destination_path, exist_ok=True)  # 確保目標資料夾存在
+                    shutil.copy(ppt_local_path, destination_path)
 
-                # 更新檔案路徑
-                data['ppt_local_path'] = os.path.join(destination_path, data['ppt_name'])
-                print(f"Copied ppt to destination path: {destination_path}")
+                    # 更新檔案路徑
+                    data['ppt_local_path'] = os.path.join(destination_path, data['ppt_name'])
+                    print(f"Copied ppt to destination path: {destination_path}")                
 
-                # 切割 PDF 文件
-                pdf_path = data['ppt_local_path']
-                pdf_reader = PdfReader(pdf_path)
-                pdf_files = []
+                    # 切割 PDF 文件
+                    pdf_path = data['ppt_local_path']
+                    pdf_reader = PdfReader(pdf_path)
+                    pdf_files = []
 
-                for i in range(len(pdf_reader.pages)):
-                    pdf_writer = PdfWriter()
-                    pdf_writer.add_page(pdf_reader.pages[i])
-                    
-                    split_pdf_path = os.path.join(destination_path, f"{data['ppt_name'].split('.')[0]}_page_{i + 1}.pdf")
-                    with open(split_pdf_path, "wb") as split_pdf_file:
-                        pdf_writer.write(split_pdf_file)
-                        pdf_files.append(split_pdf_path)
+                    for i in range(len(pdf_reader.pages)):
+                        pdf_writer = PdfWriter()
+                        pdf_writer.add_page(pdf_reader.pages[i])
+                        
+                        split_pdf_path = os.path.join(destination_path, f"{data['ppt_name'].split('.')[0]}_page_{i + 1}.pdf")
+                        with open(split_pdf_path, "wb") as split_pdf_file:
+                            pdf_writer.write(split_pdf_file)
+                            pdf_files.append(split_pdf_path)
+
+                except Exception as e:
+                    print(f"Failed to copy ppt file or split ppt: {e}")
+                    data = {'fail to copy ppt file or split ppt': str(e)}
+                    return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                 # 上傳每個分割的 PDF 文件到 OpenAI
                 classes = get_object_or_404(Class, class_id=class_id)
@@ -95,7 +101,8 @@ class PptView(GenericAPIView):
                         )
                         uploaded_file_ids.append(files.id)
                     
-                    serializer = self.serializer_class_page(data={'uploaded_id': files.id, 'ppt_ppt': ppt_id})
+                    # serializer = self.serializer_class_page(data={'uploaded_id': files.id, 'ppt_ppt': ppt_id})
+                    serializer = self.serializer_class_page(data={'uploaded_id': files.id})
                     serializer.is_valid(raise_exception=True)
                     
                     with transaction.atomic():
@@ -124,6 +131,7 @@ class PptView(GenericAPIView):
                 return JsonResponse(data, status=status.HTTP_201_CREATED)
             
             except Exception as e:
+                print(f"Failed to upload ppt file to OpenAI: {e}")
                 data = {'error': str(e)}
                 return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
   
