@@ -11,13 +11,16 @@ from django.shortcuts import get_object_or_404
 from pypdf import PdfReader, PdfWriter
 
 from .serializers import PptSerializer
+from .serializers import Ppt_pageSerializer
 from .models import Ppt
 from .models import Class
+from .models import Ppt_page
 # Create your views here.
 
 class PptView(GenericAPIView):
         queryset = Ppt.objects.all()
         serializer_class = PptSerializer
+        serializer_class_page = Ppt_pageSerializer
         destination_folder = '../../Flutter_project/flutter_application_ncu_emi/assets/'  # =cd..,cd..,cd flutter_project,...
         
         def get(self, request, *args, **kwargs):
@@ -37,6 +40,7 @@ class PptView(GenericAPIView):
             print(f"Data: {data}")
             class_id = data['class_class']
             class_name = data['class_name']
+            ppt_id = data['ppt_id']
             
             try:
                 # 複製文件到目標資料夾
@@ -90,6 +94,13 @@ class PptView(GenericAPIView):
                             purpose="assistants",
                         )
                         uploaded_file_ids.append(files.id)
+                    
+                    serializer = self.serializer_class_page(data={'uploaded_id': files.id, 'ppt_ppt': ppt_id})
+                    serializer.is_valid(raise_exception=True)
+                    
+                    with transaction.atomic():
+                        serializer.save()
+                    
                 
                 # 更新向量儲存和助理資料
                 batch_add = client.beta.vector_stores.file_batches.create(
@@ -101,6 +112,7 @@ class PptView(GenericAPIView):
                     assistant_id=assistant_id,
                     tool_resources={"file_search": {"vector_store_ids": [vector_store]}},
                 )
+                
 
                 # 保存資料到資料庫
                 serializer = self.serializer_class(data=data)
