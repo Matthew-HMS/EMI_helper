@@ -47,7 +47,7 @@ class GPTResponseAPIView(GenericAPIView):
                 messages=[
                     {
                         "role": "user",
-                        "content": data['message']
+                        "content": data['message']+ " " + ppt_instance.ppt_name
                         # "content": "briefly explain 改良QuickSort作業說明_更正.pdf."
                     }
                 ]
