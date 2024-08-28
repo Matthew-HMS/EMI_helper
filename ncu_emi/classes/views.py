@@ -42,7 +42,10 @@ class ClassView(GenericAPIView):
                 # 創建Assistant
                 assistant = client.beta.assistants.create(
                     name=data['class_name'],
-                    instructions="1. You are now an assistant for the professor in algorithm class, you need to teach the class in English 2. Read pdf's content and give me an English script for class 3. Use the knowledge only in the pdf, else don't answer and say you don't know",
+                    instructions='''1. You are now an assistant for the professor, you need to teach the class in English 
+                    2. Read pdf's content and give me an English script for class  
+                    3. You can only answer the question related to pdf 
+                    4. The default limit of your response is 200 words unless user tell you the specific limit''',
                     model="gpt-4o",
                     tools=[{"type": "file_search"}],
                 )
