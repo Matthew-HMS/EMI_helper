@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class Ppt(models.Model):
-    ppt_id = models.IntegerField(db_column='PPT_id', primary_key=True)  # Field name made lowercase.
+    ppt_id = models.AutoField(db_column='PPT_id', primary_key=True)  # Field name made lowercase.
     ppt_name = models.CharField(db_column='PPT_name', max_length=45, blank=True, null=True)  # Field name made lowercase.
     ppt_path = models.CharField(db_column='PPT_path', max_length=45, blank=True, null=True)  # Field name made lowercase.
     ppt_local_path = models.CharField(db_column='PPT_local_path', max_length=100, blank=True, null=True)  # Field name made lowercase.
@@ -44,3 +44,13 @@ class Ppt_page(models.Model):
     class Meta:
         managed = False
         db_table = 'ppt_page'
+
+class Pptword(models.Model):
+    pptword_id = models.IntegerField(db_column='PPTWord_id', primary_key=True)  # Field name made lowercase.
+    pptword_page = models.IntegerField(db_column='PPTWord_page', blank=True, null=True)  # Field name made lowercase.
+    pptword_content = models.CharField(db_column='PPTWord_content', max_length=10000, blank=True, null=True)  # Field name made lowercase.
+    ppt_ppt = models.ForeignKey(Ppt, models.DO_NOTHING, db_column='PPT_PPT_id')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'pptword'
