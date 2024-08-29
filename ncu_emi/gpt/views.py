@@ -21,11 +21,10 @@ class GPTResponseAPIView(GenericAPIView):
         print(request.GET)
         pptword_page = request.GET.get('pptword_page')
         ppt_ppt = request.GET.get('ppt_ppt')
-        pptword_qusetion = request.GET.get('pptword_question')
         print(pptword_page,ppt_ppt)
-        if pptword_page and ppt_ppt and pptword_qusetion:
+        if pptword_page and ppt_ppt:
             print("gpt get by page and ppt")
-            pptwords = self.get_queryset().filter(pptword_page=pptword_page, ppt_ppt=ppt_ppt, pptword_question=pptword_qusetion)
+            pptwords = self.get_queryset().filter(pptword_page=pptword_page, ppt_ppt=ppt_ppt)
         else:
             print("gpt get all")
             pptwords = self.get_queryset()
