@@ -41,6 +41,7 @@ class Pptword(models.Model):
     pptword_page = models.IntegerField(db_column='PPTWord_page', blank=True, null=True)  # Field name made lowercase.
     pptword_content = models.CharField(db_column='PPTWord_content', max_length=10000, blank=True, null=True)  # Field name made lowercase.
     ppt_ppt = models.ForeignKey(Ppt, models.DO_NOTHING, db_column='PPT_PPT_id')  # Field name made lowercase.
+    pptword_question = models.CharField(db_column='PPTWord_question', max_length=1000, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
