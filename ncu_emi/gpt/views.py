@@ -21,10 +21,11 @@ class GPTResponseAPIView(GenericAPIView):
         print(request.GET)
         pptword_page = request.GET.get('pptword_page')
         ppt_ppt = request.GET.get('ppt_ppt')
+        pptword_qusetion = request.GET.get('pptword_question')
         print(pptword_page,ppt_ppt)
-        if pptword_page and ppt_ppt:
+        if pptword_page and ppt_ppt and pptword_qusetion:
             print("gpt get by page and ppt")
-            pptwords = self.get_queryset().filter(pptword_page=pptword_page, ppt_ppt=ppt_ppt)
+            pptwords = self.get_queryset().filter(pptword_page=pptword_page, ppt_ppt=ppt_ppt, pptword_question=pptword_qusetion)
         else:
             print("gpt get all")
             pptwords = self.get_queryset()
@@ -69,6 +70,7 @@ class GPTResponseAPIView(GenericAPIView):
             messages = list(client.beta.threads.messages.list(thread_id=thread.id, run_id=run.id))
 
             data['pptword_content'] = messages[0].content[0].text.value
+            data['pptword_question'] = data['message']
         
             serializer = self.serializer_class(data=data)
             serializer.is_valid(raise_exception=True)
