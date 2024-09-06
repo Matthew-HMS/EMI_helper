@@ -18,7 +18,7 @@ class GPTResponseAPIView(GenericAPIView):
     serializer_class = PptWordSerializer
 
     def get(self, request):
-        print(request.GET)
+        # print(request.GET)
         pptword_page = request.GET.get('pptword_page')
         ppt_ppt = request.GET.get('ppt_ppt')
         print(pptword_page,ppt_ppt)

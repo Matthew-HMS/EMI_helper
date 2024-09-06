@@ -28,7 +28,7 @@ def login_view(request):
         user = User.objects.filter(user_name=user_name, user_pw=user_pw).first()
         print(f'User: {user}')  
         if user is not None:
-            login(request, user)
+            # login(request, user)
             return HttpResponseRedirect('/index/')
         else:
             messages.error(request, '帳號或密碼錯誤')
