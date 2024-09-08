@@ -3,6 +3,9 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.contrib.auth import login, logout
 
+import jwt
+from datetime import datetime, timedelta
+from django.conf import settings
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
@@ -62,7 +65,10 @@ class RegisterView(CreateAPIView):
         user.set_password(data['user_pw']) 
         user.save()
 
-        return JsonResponse({'message': '用戶註冊成功'}, status=status.HTTP_201_CREATED)
+        return JsonResponse({
+            'message': '用户注册成功',
+            'user_id': user.user_id
+        }, status=status.HTTP_201_CREATED)
 
 class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
@@ -75,28 +81,43 @@ class LoginView(GenericAPIView):
         user = User.objects.filter(user_account=user_account).first()
 
         if user and user.check_password(user_pw):
-            refresh = RefreshToken.for_user(user)
-            user.last_login = datetime.now()
+         
+            access_token = self.generate_jwt_token(user)
+            
+           
+            user.last_login = now()
             user.save()
 
             return Response({
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-                'user_id': user.user_id
+                'access': access_token,
+
+                'user_id': user.user_id  
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': '帳號或密碼錯誤'}, status=status.HTTP_400_BAD_REQUEST)
 
+    def generate_jwt_token(self, user):
+        expiration = datetime.utcnow() + timedelta(minutes=60)
+        token = jwt.encode({
+            'user_id': user.user_id,
+            'exp': expiration
+        }, settings.SECRET_KEY, algorithm='HS256')
+        return token
 
-class LogoutView(APIView):
-    def post(self, request):
-        try:
-            refresh_token = request.data.get('refresh')
-            
-            token = RefreshToken(refresh_token)
-            token.blacklist()
 
-            return Response({'message': '登出成功，令牌已失效'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+# class LogoutView(APIView):
+#     def post(self, request):
+#         auth_header = request.headers.get('Authorization')
+#         if auth_header and auth_header.startswith('Bearer '):
+#             access_token = auth_header.split(' ')[1]
+#             try:
+#                 jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+
+#                 TokenBlacklist.objects.create(token=access_token)
+#                 return Response({'message': '登出成功，令牌已加入黑名單'}, status=status.HTTP_200_OK)
+#             except jwt.ExpiredSignatureError:
+#                 return Response({'error': '令牌已過期'}, status=status.HTTP_400_BAD_REQUEST)
+#             except jwt.InvalidTokenError:
+#                 return Response({'error': '無效令牌'}, status=status.HTTP_400_BAD_REQUEST)
+#         return Response({'error': '未提供令牌'}, status=status.HTTP_400_BAD_REQUEST)
     
