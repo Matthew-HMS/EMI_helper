@@ -184,6 +184,14 @@ class User(models.Model):
     user_pw = models.CharField(db_column='User_pw', max_length=128)  # Field name made lowercase.
     is_active = models.IntegerField()
     last_login = models.DateTimeField(blank=True, null=True)
+    
+    def set_password(self, raw_password):
+        import hashlib
+        self.user_pw = hashlib.sha256(raw_password.encode()).hexdigest()
+
+    def check_password(self, raw_password):
+        import hashlib
+        return self.user_pw == hashlib.sha256(raw_password.encode()).hexdigest()
 
     class Meta:
         managed = False

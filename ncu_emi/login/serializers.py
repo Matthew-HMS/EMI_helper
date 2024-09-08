@@ -5,17 +5,16 @@ from django.contrib.auth.hashers import make_password, check_password
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['user_id','user_account', 'user_pw', 'user_name','is_active','last_login']
+        read_only_fields = ['user_id']
         extra_kwargs = {
-            'user_id': {'read_only': True},
-            'user_pw': {'write_only': True},
-            'is_active':{'default':0},
+            'user_pw': {'write_only': True}  
         }
 
-    def create(self, validated_data):
-        validated_data['user_pw'] = make_password(validated_data['user_pw'])
-        return super(UserSerializer, self).create(validated_data)
-
 class LoginSerializer(serializers.Serializer):
-    user_account = serializers.CharField()
-    user_pw = serializers.CharField()
+    class Meta:
+        model = User
+        fields = ['user_account', 'user_pw']
+        extra_kwargs = {
+            'user_pw': {'write_only': True}
+        }
