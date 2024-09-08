@@ -35,7 +35,7 @@ class GPTResponseAPIView(GenericAPIView):
         return JsonResponse(
             json.loads(json.dumps(data, ensure_ascii=False)),
             status=status.HTTP_200_OK,
-            safe=False  # 如果是列表而非字典，需要設置 safe=False
+            safe=False
         )
         
 
