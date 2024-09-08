@@ -9,6 +9,7 @@ from openai import OpenAI
 
 from .serializers import ClassSerializer
 from .models import Class
+from .models import Ppt
 # Create your views here.
 
 class ClassView(GenericAPIView):        
@@ -46,7 +47,7 @@ class ClassView(GenericAPIView):
                     2. Read pdf's content and give me an English script for class  
                     3. You can only answer the question related to pdf 
                     4. The default limit of your response is 200 words unless user tell you the specific limit''',
-                    model="gpt-4o",
+                    model="gpt-4o-mini",
                     tools=[{"type": "file_search"}],
                 )
 
@@ -81,18 +82,22 @@ class ClassView(GenericAPIView):
                 return JsonResponse(data, status=status.HTTP_204_NO_CONTENT)
             except Class.DoesNotExist:
                 data = {'error': 'Class with the given ID does not exist'}
+                print("error: ",data)
                 return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
+                print("error: ",data)
                 return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         def patch (self, request, *args, **krgs):
             data = request.data
             try:
                 classes = Class.objects.get(class_id=data['class_id'])
-        
-                # update vector_store name
+                old_class_name = classes.class_name
                 new_class_name = data.get('class_name')
+                
+        
+                # update vector_store name                
                 if new_class_name:
                     api_key = os.environ.get('OPENAI_API_KEY')
                     client = OpenAI(api_key=api_key)
@@ -100,7 +105,14 @@ class ClassView(GenericAPIView):
                     client.beta.vector_stores.update(vector_store_id=classes.vector_store_id, name=new_class_name)
                     client.beta.assistants.update(assistant_id=classes.class_path, name=new_class_name)
 
-                classes = Class.objects.get(class_id=data['class_id'])
+                # revise ppt local path
+                ppt_instances = Ppt.objects.filter(class_class=classes.class_id)
+                for ppt_instance in ppt_instances:
+                    old_path = ppt_instance.ppt_local_path
+                    new_path = old_path.replace(old_class_name,new_class_name)
+                    ppt_instance.ppt_local_path = new_path
+                    ppt_instance.save()
+
                 serializer = self.serializer_class(classes, data=data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 with transaction.atomic():
@@ -109,9 +121,11 @@ class ClassView(GenericAPIView):
                 return JsonResponse(data, status=status.HTTP_200_OK)
             except Class.DoesNotExist:
                 data = {'error': 'Class with the given ID does not exist'}
+                print("error: ",data)
                 return JsonResponse(data, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 data = {'error': str(e)}
+                print("error: ",data)
                 return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         def get_extra_actions():

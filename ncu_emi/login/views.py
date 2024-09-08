@@ -20,6 +20,7 @@ from .models import User
 from .serializers import UserSerializer, LoginSerializer  
 
 
+
 # def index_view(request):
 #     return render(request, 'index.html')
 
@@ -41,6 +42,7 @@ from .serializers import UserSerializer, LoginSerializer
 
 
     
+
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
