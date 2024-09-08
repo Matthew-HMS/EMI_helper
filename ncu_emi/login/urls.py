@@ -21,10 +21,8 @@ from rest_framework_simplejwt import views as jwt_views
 from . import views
 
 urlpatterns = [
-    path("", views.login_view, name="login_view"),
-    path("index/", views.index_view, name="index_view"),
-    path("api/", views.LoginView.as_view()),
-    path("register/", views.RegisterView.as_view()),
-    path("api/logout/", views.LogoutView.as_view()),
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('register/', views.RegisterView.as_view(), name='register'),
+    path('logout/', views.LogoutView.as_view(), name='logout'),
     path('api/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
 ]
