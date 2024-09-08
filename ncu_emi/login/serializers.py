@@ -17,5 +17,9 @@ class UserSerializer(serializers.ModelSerializer):
         return super(UserSerializer, self).create(validated_data)
 
 class LoginSerializer(serializers.Serializer):
-    user_account = serializers.CharField()
-    user_pw = serializers.CharField()
+    class Meta:
+        model = User
+        fields = ['user_account', 'user_pw']
+        extra_kwargs = {
+            'user_pw': {'write_only': True}
+        }
