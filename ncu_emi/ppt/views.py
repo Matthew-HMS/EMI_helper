@@ -22,7 +22,7 @@ class PptView(GenericAPIView):
         queryset = Ppt.objects.all()
         serializer_class = PptSerializer
         serializer_class_page = Ppt_pageSerializer
-        destination_folder = '../../Flutter_project/flutter_application_ncu_emi/assets/'  # =cd..,cd..,cd flutter_project,...
+        destination_folder = '../../Flutter_project/ncu_emi/assets/'  # =cd..,cd..,cd flutter_project,...
         
         def get(self, request, *args, **kwargs):
             class_class = request.GET.get('class_class')

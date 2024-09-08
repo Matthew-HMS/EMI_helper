@@ -2,6 +2,8 @@ import os
 import requests
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+import json
+from django.http import JsonResponse
 from rest_framework import status
 from openai import OpenAI
 from django.shortcuts import get_object_or_404
@@ -18,7 +20,7 @@ class GPTResponseAPIView(GenericAPIView):
     serializer_class = PptWordSerializer
 
     def get(self, request):
-        print(request.GET)
+        # print(request.GET)
         pptword_page = request.GET.get('pptword_page')
         ppt_ppt = request.GET.get('ppt_ppt')
         print(pptword_page,ppt_ppt)
@@ -71,18 +73,25 @@ class GPTResponseAPIView(GenericAPIView):
             data['pptword_content'] = messages[0].content[0].text.value
             data['pptword_question'] = data['message']
         
+            print(data['pptword_content'])
+
             serializer = self.serializer_class(data=data)
             serializer.is_valid(raise_exception=True)
             with transaction.atomic():
                 serializer.save()
 
-            return Response({
-                "message": messages[0].content[0].text.value
-            }, status=status.HTTP_200_OK)
-            # return Response({
-            #     "message": "message received"
-            # }, status=status.HTTP_200_OK)
+            # return Response(
+            #     {"message": messages[0].content[0].text.value}, 
+            #     status=status.HTTP_200_OK
+            #     )
+            return JsonResponse(
+                json.loads(json.dumps({
+                    "message": messages[0].content[0].text.value
+                }, ensure_ascii=False)),
+                status=status.HTTP_200_OK
+            )
         except Exception as e:
+            print({'error': str(e)})
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
         

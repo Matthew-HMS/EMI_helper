@@ -23,3 +23,14 @@ class Class(models.Model):
     class Meta:
         managed = False
         db_table = 'class'
+
+class Ppt(models.Model):
+    ppt_id = models.AutoField(db_column='PPT_id', primary_key=True)  # Field name made lowercase.
+    ppt_name = models.CharField(db_column='PPT_name', max_length=45, blank=True, null=True)  # Field name made lowercase.
+    ppt_path = models.CharField(db_column='PPT_path', max_length=45, blank=True, null=True)  # Field name made lowercase.
+    ppt_local_path = models.CharField(db_column='PPT_local_path', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    class_class = models.ForeignKey('Class', models.DO_NOTHING, db_column='Class_Class_id')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'ppt'
