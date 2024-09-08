@@ -32,7 +32,12 @@ class GPTResponseAPIView(GenericAPIView):
             pptwords = self.get_queryset()
         serializer = self.serializer_class(pptwords, many=True)
         data = serializer.data
-        return Response(data, status=status.HTTP_200_OK)
+        return JsonResponse(
+            json.loads(json.dumps(data, ensure_ascii=False)),
+            status=status.HTTP_200_OK,
+            safe=False
+        )
+        
 
     def post(self, request):
         data = request.data
