@@ -32,7 +32,12 @@ class GPTResponseAPIView(GenericAPIView):
             pptwords = self.get_queryset()
         serializer = self.serializer_class(pptwords, many=True)
         data = serializer.data
-        return Response(data, status=status.HTTP_200_OK)
+        return JsonResponse(
+            json.loads(json.dumps(data, ensure_ascii=False)),
+            status=status.HTTP_200_OK,
+            safe=False
+        )
+        
 
     def post(self, request):
         data = request.data
@@ -94,5 +99,17 @@ class GPTResponseAPIView(GenericAPIView):
             print({'error': str(e)})
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
-        
+    def delete(self, request):
+        data = request.data
+        try:
+            pptword_id = data.get('pptword_id')
+            pttword_instance = Pptword.objects.get(pptword_id=pptword_id)
+            pttword_instance.delete()
+            return JsonResponse({'message': 'chat deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+        except Pptword.DoesNotExist:
+            print(f'chat with the given ID does not exist: {pptword_id}')
+            return JsonResponse({'error': 'Ppt with the given ID does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f'Failed to delete pptword: {e}')
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
