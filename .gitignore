@@ -1,2 +1,3 @@
 ncu_emi_project/
 venv
+*.pyc
