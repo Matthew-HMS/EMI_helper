@@ -68,7 +68,7 @@ class RegisterView(CreateAPIView):
         user.save()
 
         return JsonResponse({
-            'message': '用户注册成功',
+            'message': '註冊成功',
             'user_id': user.user_id
         }, status=status.HTTP_201_CREATED)
 
@@ -81,6 +81,11 @@ class LoginView(GenericAPIView):
         user_pw = data.get('user_pw')
 
         user = User.objects.filter(user_account=user_account).first()
+
+        if user :
+            print("test1")
+        if user.check_password(user_pw):
+            print("test2")
 
         if user and user.check_password(user_pw):
          
