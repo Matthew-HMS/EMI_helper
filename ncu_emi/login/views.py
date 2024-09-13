@@ -53,6 +53,12 @@ class RegisterView(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
+
+        if User.objects.filter(user_account=data['user_account']).exists():
+            return JsonResponse({
+                'message': 'this account has been registered'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         data['last_login'] = datetime.now()
         data['is_active'] = 0
         
@@ -82,11 +88,6 @@ class LoginView(GenericAPIView):
 
         user = User.objects.filter(user_account=user_account).first()
 
-        if user :
-            print("test1")
-        if user.check_password(user_pw):
-            print("test2")
-
         if user and user.check_password(user_pw):
          
             access_token = self.generate_jwt_token(user)
@@ -97,11 +98,10 @@ class LoginView(GenericAPIView):
 
             return Response({
                 'access': access_token,
-
                 'user_id': user.user_id  
             }, status=status.HTTP_200_OK)
         else:
-            return Response({'error': '帳號或密碼錯誤'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'account or password worng'}, status=status.HTTP_400_BAD_REQUEST)
 
     def generate_jwt_token(self, user):
         expiration = datetime.utcnow() + timedelta(minutes=60)
