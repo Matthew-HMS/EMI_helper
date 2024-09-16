@@ -18,7 +18,14 @@ class ClassView(GenericAPIView):
         
         
         def get(self, request, *args, **kwargs):
-            classes = self.get_queryset()
+            user_id = request.GET.get('user_id')
+            print(user_id)
+            if user_id :
+                print("class get by user")
+                classes = self.get_queryset().filter(user_user=user_id)
+            else:
+                print("class get all")
+                classes = self.get_queryset()
             serializer = self.serializer_class(classes, many=True)
             data = serializer.data
             return JsonResponse(data, safe=False)
@@ -62,6 +69,7 @@ class ClassView(GenericAPIView):
             
                 return JsonResponse(data, status=status.HTTP_201_CREATED)
             except Exception as e:
+                print("'error': ",str(e))
                 data = {'error': str(e)}
                 return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
   
