@@ -13,7 +13,14 @@ class PromptView(GenericAPIView):
     serializer_class = PromptSerializer
     
     def get(self, request, *args, **krgs):
-        prompts = self.get_queryset()
+        user_id = request.GET.get('user_id')
+        print(user_id)
+        if user_id :
+            print("prompt get by user")
+            prompts = self.get_queryset().filter(user_user=user_id)
+        else:
+            print("prompt get all")
+            prompts = self.get_queryset()
         serializer = self.serializer_class(prompts, many=True)
         data = serializer.data
         return JsonResponse(data, safe=False)
