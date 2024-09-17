@@ -62,6 +62,11 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'user_id',  
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
 }
 
 MIDDLEWARE = [
@@ -103,7 +108,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'emi_db',
         'USER': 'root',
-        'PASSWORD': '110403524',
+        'PASSWORD': '2wsx4rfv',
         'HOST': 'localhost',
         'PORT': '3306',
     }

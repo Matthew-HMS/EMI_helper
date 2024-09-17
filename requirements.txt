@@ -1,0 +1,8 @@
+django
+openai
+pymysql
+cryptography
+requests
+djangorestframework
+djangorestframework-simplejwt
+pymdf
