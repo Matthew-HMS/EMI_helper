@@ -108,7 +108,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'emi_db',
         'USER': 'root',
-        'PASSWORD': '2wsx4rfv',
+        'PASSWORD': '110403524',
         'HOST': 'localhost',
         'PORT': '3306',
     }
