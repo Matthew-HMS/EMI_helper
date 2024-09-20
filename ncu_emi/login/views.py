@@ -23,6 +23,8 @@ from rest_framework.exceptions import AuthenticationFailed
 from .models import User
 from .serializers import UserSerializer, LoginSerializer  
 
+import json
+
 
 class RegisterView(CreateAPIView):
     queryset = User.objects.all()
@@ -32,6 +34,11 @@ class RegisterView(CreateAPIView):
         data = request.data
         data['last_login'] = datetime.now()
         data['is_active'] = 0
+
+        if User.objects.filter(user_account=data['user_account']).exists():
+            return JsonResponse({
+                'error': '用戶帳號已存在，請選擇其他帳號'
+            }, status=status.HTTP_400_BAD_REQUEST)
         
         user = User(
             user_account=data['user_account'],
@@ -99,28 +106,75 @@ class LoginView(APIView):
 #         }, settings.SECRET_KEY, algorithm='HS256')
 #         return token
 
-class UpdateView(APIView):
+class UpdateView(GenericAPIView):
+    
+    serilizer_user = UserSerializer
+
+    def get_queryset(self):
+        # 假設你要從 User 模型中取得資料
+        return User.objects.all()
+
+    def get(self, request):
+        user_id = request.GET.get('user_id')
+        
+        if user_id:
+            print("gpt get by user")
+            user_instance = self.get_queryset().filter(user_id=user_id)
+        else:
+            # 如果沒有 user_id，可能要返回一些默認資料
+            user_instance = self.get_queryset()
+       
+        serializer = self.serilizer_user(user_instance, many=True)
+        data = serializer.data
+        return JsonResponse(
+            json.loads(json.dumps(data, ensure_ascii=False)),
+            status=status.HTTP_200_OK,
+            safe=False
+        )
+
     def post(self, request):
         # 檢查 session 是否存在
-        if 'user_id' not in request.session:
-            return JsonResponse({'error': '未登入'}, status=401)
+        # if 'user_id' not in request.session:
+        #     return JsonResponse({'error': '未登入'}, status=401)
 
-        user_id = request.session['user_id']
-        user = User.objects.get(user_id=user_id)
-
+        # user_id = request.session['user_id']
+        # user_account = request.GET.get('user_account')
         data = request.data
-        old_pw = data.get('old_pw')
-        new_pw = data.get('new_pw')
+        user_id = data.get('user_id')
+        print("user_id: ",user_id)
+        user = User.objects.get(user_id=user_id)
+ 
+        
+        user_old_pw = data.get('user_old_pw')
+        user_new_pw = data.get('user_new_pw')
+        new_user_account = data.get('user_account')
+        new_user_name = data.get('user_name')
 
-        # 檢查舊密碼是否正確
-        if not user.check_password(old_pw):
-            return JsonResponse({'error': '舊密碼錯誤'}, status=400)
+        if new_user_name:
+            print("change user name")
+            user.user_name = new_user_name    
 
-        # 如果舊密碼正確，則設置新密碼
-        if new_pw:
-            user.set_password(new_pw)
+        if new_user_account:
+            if User.objects.filter(user_account=new_user_account).exclude(user_id=user_id).exists():
+                return JsonResponse({'message': '用戶帳號已存在，請選擇其他帳號'}, status=400)
+            print("change user account")
+            user.user_account = new_user_account
+        
+        if user_old_pw and user_new_pw :
+            # 檢查舊密碼是否正確
+            if not user.check_password(user_old_pw):
+                print('舊密碼錯誤')
+                return JsonResponse({'message': '舊密碼錯誤'}, status=400)
+            # 如果舊密碼正確，則設置新密碼      
+            user.set_password(user_new_pw)
             user.save()
-            return JsonResponse({'message': '密碼更新成功'}, status=200)
-
-        return JsonResponse({'error': '新密碼不能為空'}, status=400)
+            print('密碼更新成功')
+            return JsonResponse({'message': '密碼更新成功'}, status=200)     
+        elif user_old_pw and not user_new_pw :
+            return JsonResponse({'message': '密碼不能為空'}, status=400)
+        elif not user_old_pw and user_new_pw :
+            return JsonResponse({'message': '密碼不能為空'}, status=400)
+        else:
+            return JsonResponse({'message': '帳號更新成功'}, status=200)
+            
 
